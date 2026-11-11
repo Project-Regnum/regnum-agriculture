@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "package": "com.projectregnum.agriculture.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "CropBlockMixin",
+    "BiomeSnowMixin",
+    "ServerWeatherMixin",
+    "SnowOwnershipMixin",
+    "SnowRemovalMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

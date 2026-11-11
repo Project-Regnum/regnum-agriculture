@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "regnum_agriculture_tests",
+  "version": "1.0.0",
+  "name": "Regnum Agriculture tests",
+  "environment": "server",
+  "entrypoints": {"fabric-gametest": ["com.projectregnum.agriculture.test.FoundationGameTests"]},
+  "depends": {"regnum_agriculture": "*", "fabric-gametest-api-v1": "*"}
+}

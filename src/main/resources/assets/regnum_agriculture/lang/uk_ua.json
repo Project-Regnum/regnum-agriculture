@@ -1,0 +1,11 @@
+{
+  "season.regnum_agriculture.spring": "Весна",
+  "season.regnum_agriculture.summer": "Літо",
+  "season.regnum_agriculture.autumn": "Осінь",
+  "season.regnum_agriculture.winter": "Зима",
+  "commands.regnum_agriculture.season": "Пора року: %s — день %s із %s.",
+  "commands.regnum_agriculture.set": "Пору року змінено: %s. Час доби не змінено.",
+  "commands.regnum_agriculture.reloaded": "Конфігурацію Regnum Agriculture перезавантажено.",
+  "commands.regnum_agriculture.reload_failed": "Не вдалося завантажити конфігурацію. Попередні налаштування збережено; перевірте журнал сервера.",
+  "commands.regnum_agriculture.inactive": "У цьому вимірі пори року не діють."
+}
