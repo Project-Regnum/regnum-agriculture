@@ -1,0 +1,11 @@
+{
+  "season.regnum_agriculture.spring": "Spring",
+  "season.regnum_agriculture.summer": "Summer",
+  "season.regnum_agriculture.autumn": "Autumn",
+  "season.regnum_agriculture.winter": "Winter",
+  "commands.regnum_agriculture.season": "Season: %s — day %s of %s.",
+  "commands.regnum_agriculture.set": "Season set to %s. Daylight is unchanged.",
+  "commands.regnum_agriculture.reloaded": "Regnum Agriculture configuration reloaded.",
+  "commands.regnum_agriculture.reload_failed": "Configuration could not be loaded. Previous settings retained; check the server log.",
+  "commands.regnum_agriculture.inactive": "Seasons are inactive in this dimension."
+}

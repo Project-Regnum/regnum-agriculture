@@ -1,41 +1,42 @@
 {
-	"schemaVersion": 1,
-	"id": "regnum-agriculture",
-	"version": "${version}",
-	"name": "Regnum Agriculture",
-	"description": "This is an example description! Tell everyone what your mod is about!",
-	"authors": [
-		"Me!"
-	],
-	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
-	},
-	"license": "CC0-1.0",
-	"icon": "assets/regnum-agriculture/icon.png",
-	"environment": "*",
-	"entrypoints": {
-		"main": [
-			"com.projectregnum.agriculture.RegnumAgriculture"
-		],
-		"client": [
-			"com.projectregnum.agriculture.client.RegnumAgricultureClient"
-		],
-		"fabric-datagen": [
-			"com.projectregnum.agriculture.client.RegnumAgricultureDataGenerator"
-		]
-	},
-	"mixins": [
-		"regnum-agriculture.mixins.json",
-		{
-			"config": "regnum-agriculture.client.mixins.json",
-			"environment": "client"
-		}
-	],
-	"depends": {
-		"fabricloader": ">=0.20.1",
-		"minecraft": "~1.21.1",
-		"java": ">=21",
-		"fabric-api": "*"
-	}
+  "schemaVersion": 1,
+  "id": "regnum_agriculture",
+  "version": "${version}",
+  "name": "Regnum Agriculture",
+  "description": "Server-authoritative seasons and the agricultural foundation for Project Regnum.",
+  "authors": [
+    "Project Regnum"
+  ],
+  "contributors": [
+    "D4rkness_King and Fabric Seasons contributors (adapted seasonal engine)"
+  ],
+  "contact": {
+    "sources": "https://github.com/Project-Regnum/regnum-agriculture"
+  },
+  "license": "MPL-2.0",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.projectregnum.agriculture.RegnumAgriculture"
+    ],
+    "client": [
+      "com.projectregnum.agriculture.client.RegnumAgricultureClient"
+    ]
+  },
+  "mixins": [
+    "regnum_agriculture.mixins.json",
+    {
+      "config": "regnum_agriculture.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.5",
+    "minecraft": "1.21.1",
+    "java": ">=21",
+    "fabric-api": ">=0.105.0+1.21.1"
+  },
+  "breaks": {
+    "seasons": "*"
+  }
 }
