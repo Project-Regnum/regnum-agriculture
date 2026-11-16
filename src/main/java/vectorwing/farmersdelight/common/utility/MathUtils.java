@@ -1,0 +1,33 @@
+package vectorwing.farmersdelight.common.utility;
+
+import net.minecraft.world.item.ItemStack;
+
+import org.jetbrains.annotations.Nullable;
+import vectorwing.farmersdelight.refabricated.inventory.ItemHandler;
+
+import java.util.Random;
+
+public class MathUtils
+{
+	public static final Random RAND = new Random();
+
+	public static int calcRedstoneFromItemHandler(@Nullable ItemHandler handler) {
+		if (handler == null) {
+			return 0;
+		} else {
+			int i = 0;
+			float f = 0.0F;
+
+			for (int j = 0; j < handler.getSlotCount(); ++j) {
+				ItemStack itemstack = handler.getStackInSlot(j);
+				if (!itemstack.isEmpty()) {
+					f += (float) itemstack.getCount() / (float) Math.min(handler.getSlotLimit(j), itemstack.getMaxStackSize());
+					++i;
+				}
+			}
+
+			f = f / (float) handler.getSlotCount();
+			return net.minecraft.util.Mth.floor(f * 14.0F) + (i > 0 ? 1 : 0);
+		}
+	}
+}

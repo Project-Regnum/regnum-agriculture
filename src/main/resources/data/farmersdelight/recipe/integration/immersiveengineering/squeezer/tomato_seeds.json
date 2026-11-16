@@ -1,0 +1,19 @@
+{
+  "fabric:load_conditions": [
+    {
+      "condition": "fabric:all_mods_loaded",
+      "values": [
+        "immersiveengineering"
+      ]
+    }
+  ],
+  "type": "immersiveengineering:squeezer",
+  "energy": 6400,
+  "fluid": {
+    "amount": 60,
+    "id": "immersiveengineering:plantoil"
+  },
+  "input": {
+    "item": "farmersdelight:tomato_seeds"
+  }
+}

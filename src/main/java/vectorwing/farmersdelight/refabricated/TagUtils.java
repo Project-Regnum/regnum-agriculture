@@ -1,0 +1,113 @@
+package vectorwing.farmersdelight.refabricated;
+
+import com.google.common.collect.Maps;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.mojang.serialization.Dynamic;
+import com.mojang.serialization.JsonOps;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.FileToIdConverter;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.tags.TagFile;
+import net.minecraft.tags.TagKey;
+import net.minecraft.tags.TagLoader;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.level.block.Block;
+import vectorwing.farmersdelight.common.tag.ModTags;
+
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
+public class TagUtils {
+    private static ResourceManager resourceManager;
+
+    private static Collection<Holder<Block>> earlyDropsCakeTag;
+    private static Collection<Holder<EntityType<?>>> earlyDropsLeatherTag;
+
+    public static boolean isCandleDropsCakeSliceTag(Holder<Block> block, HolderLookup<Block> lookup) {
+        if (earlyDropsCakeTag == null) {
+            TagLoader<Holder<Block>> loader = new TagLoader<>(rl -> lookup.get(ResourceKey.create(Registries.BLOCK, rl)), "tags/block");
+            var dropsLeatherMap = loadTag(ModTags.Blocks.DROPS_CAKE_SLICE);
+            Map<ResourceLocation, Collection<Holder<Block>>> loaded = loader.build(dropsLeatherMap);
+            earlyDropsCakeTag = loaded.get(ModTags.Blocks.DROPS_CAKE_SLICE.location());
+            if (earlyDropsCakeTag == null)
+                earlyDropsCakeTag = List.of();
+        }
+
+        return earlyDropsCakeTag.contains(block);
+    }
+
+    public static boolean isDropsLeatherTag(Holder<EntityType<?>> entityType, HolderLookup<EntityType<?>> lookup) {
+        if (earlyDropsLeatherTag == null) {
+            TagLoader<Holder<EntityType<?>>> loader = new TagLoader<>(rl -> lookup.get(ResourceKey.create(Registries.ENTITY_TYPE, rl)), "tags/entity_type");
+            var dropsLeatherMap = loadTag(FDRefabricatedTags.EntityTypes.DROPS_LEATHER);
+            Map<ResourceLocation, Collection<Holder<EntityType<?>>>> loaded = loader.build(dropsLeatherMap);
+            earlyDropsLeatherTag = loaded.get(FDRefabricatedTags.EntityTypes.DROPS_LEATHER.location());
+            if (earlyDropsLeatherTag == null)
+                earlyDropsLeatherTag = List.of();
+        }
+
+        return earlyDropsLeatherTag.contains(entityType);
+    }
+
+    public static <T> Map<ResourceLocation, List<TagLoader.EntryWithSource>> loadTag(TagKey<T> tagKey) {
+        Map<ResourceLocation, List<TagLoader.EntryWithSource>> map = Maps.newHashMap();
+        String tagRegistryLocation = (tagKey.registry().location().getNamespace().equals(ResourceLocation.DEFAULT_NAMESPACE) ? "" : tagKey.registry().location().getNamespace() + "/")  + tagKey.registry().location().getPath();
+        ResourceLocation jsonPath = ResourceLocation.fromNamespaceAndPath(tagKey.location().getNamespace(), "tags/" +
+                tagRegistryLocation + "/" + tagKey.location().getPath() + ".json");
+
+        for (Resource entry : resourceManager.getResourceStack(jsonPath)) {
+            loadIndividualTag(tagRegistryLocation, jsonPath, entry, map);
+        }
+
+        return map;
+    }
+
+    private static void loadIndividualTag(String tagRegistryLocation, ResourceLocation fileLocation, Resource resource, Map<ResourceLocation, List<TagLoader.EntryWithSource>> map) {
+        FileToIdConverter converter = FileToIdConverter.json("tags/" + tagRegistryLocation);
+        ResourceLocation fileToId = converter.fileToId(fileLocation);
+        try (Reader reader = resource.openAsReader()) {
+            JsonElement jsonElement = JsonParser.parseReader(reader);
+            List<TagLoader.EntryWithSource> list = map.getOrDefault(fileToId, new ArrayList<>());
+            TagFile tagFile = TagFile.CODEC.parse(new Dynamic<>(JsonOps.INSTANCE, jsonElement)).getOrThrow();
+            if (tagFile.replace()) {
+                list.clear();
+            }
+
+            tagFile.entries().forEach((tagEntry) -> {
+
+                tagEntry.verifyIfPresent(resourceLocation -> {
+                    list.add(new TagLoader.EntryWithSource(tagEntry, resource.sourcePackId()));
+                    return false;
+                }, resourceLocation -> {
+                    for (Resource innerEntry : resourceManager.getResourceStack(converter.idToFile(resourceLocation))) {
+                        loadIndividualTag(tagRegistryLocation, resourceLocation, innerEntry, map);
+                    }
+                    list.add(new TagLoader.EntryWithSource(tagEntry, resource.sourcePackId()));
+                    return false;
+                });
+            });
+            map.putIfAbsent(fileToId, list);
+        } catch (Exception ignored) {
+
+        }
+    }
+
+    public static void setLootTableResourceManager(ResourceManager manager) {
+        resourceManager = manager;
+    }
+
+    public static void resetEarlyTagCollections() {
+        resourceManager = null;
+        earlyDropsCakeTag = null;
+        earlyDropsLeatherTag = null;
+    }
+}
