@@ -139,7 +139,7 @@ public class MushroomColonyBlock extends BushBlock implements BonemealableBlock
 
 	@Override
 	public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        if (com.projectregnum.agriculture.sync.RegnumCropSync.shouldCancelGrowth(level, pos, state, random)) return;
+        if (com.projectregnum.agriculture.sync.RegnumCropSync.handleRandomTick(level, pos, state, random)) return;
 		int age = state.getValue(COLONY_AGE);
 		BlockState groundState = level.getBlockState(pos.below());
 		if (age < getMaxAge() && groundState.is(ModTags.Blocks.MUSHROOM_COLONY_GROWABLE_ON) &&  random.nextInt(4) == 0) {
@@ -173,6 +173,8 @@ public class MushroomColonyBlock extends BushBlock implements BonemealableBlock
 
 	@Override
 	public void performBonemeal(ServerLevel level, RandomSource random, BlockPos pos, BlockState state) {
+        if (com.projectregnum.agriculture.sync.RegnumCropSync.isUndergroundBlocked(level, pos)
+                || com.projectregnum.agriculture.sync.RegnumCropSync.getMultiplier(level, pos, state) <= 0) return;
 		int age = Math.min(getMaxAge(), state.getValue(COLONY_AGE) + getBonemealAgeIncrease(level));
 		level.setBlock(pos, state.setValue(COLONY_AGE, age), 2);
 	}

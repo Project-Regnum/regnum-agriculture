@@ -52,6 +52,8 @@ public class BuddingTomatoBlock extends BuddingBushBlock implements Bonemealable
 
 	@Override
 	public void performBonemeal(ServerLevel level, RandomSource random, BlockPos pos, BlockState state) {
+        if (com.projectregnum.agriculture.sync.RegnumCropSync.isUndergroundBlocked(level, pos)
+                || com.projectregnum.agriculture.sync.RegnumCropSync.getMultiplier(level, pos, state) <= 0) return;
 		int maxAge = getMaxAge();
 		int ageGrowth = Math.min(getAge(state) + getBonemealAgeIncrease(level), 7);
 		if (ageGrowth <= maxAge) {

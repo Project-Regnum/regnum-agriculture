@@ -1,10 +1,9 @@
 plugins {
-    id 'fabric-loom' version '1.16-SNAPSHOT'
+    id 'fabric-loom' version '1.16.3'
     id 'maven-publish'
-    id "me.modmuss50.mod-publish-plugin" version "2.0.0-beta.1"
 }
 
-version = mod_version + "+refabricated"
+version = mod_version
 group = mod_group_id
 
 base {
@@ -29,7 +28,28 @@ fabricApi {
     }
 }
 
+sourceSets {
+    testmod {
+        compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
+        runtimeClasspath += sourceSets.main.runtimeClasspath + sourceSets.main.output
+    }
+}
+
 loom {
+    mods {
+        "regnum-agriculture" { sourceSet sourceSets.main }
+        "regnum_agriculture_tests" { sourceSet sourceSets.testmod }
+    }
+    runs {
+        gameTest {
+            server()
+            name "Agriculture isolated GameTest"
+            vmArg "-Dfabric-api.gametest"
+            vmArg "-Dfabric-api.gametest.report-file=reports/gametest-results.xml"
+            runDir "build/gametest"
+            source sourceSets.testmod
+        }
+    }
     accessWidenerPath = file("src/main/resources/farmersdelight.classtweaker")
 }
 
@@ -73,6 +93,13 @@ repositories {
 }
 
 dependencies {
+    testImplementation platform("org.junit:junit-bom:5.11.4")
+    testImplementation "org.junit.jupiter:junit-jupiter"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+    if (providers.gradleProperty("regnumWorldJar").isPresent()) {
+        modRuntimeOnly files(providers.gradleProperty("regnumWorldJar").get())
+    }
+
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
 
     mappings loom.layered() {
@@ -107,48 +134,6 @@ dependencies {
     }
 }
 
-var changelogFile = rootProject.file("changelog.md")
-var changelogText = changelogFile.exists() ? changelogFile.text : ""
-
-publishMods {
-    file = remapJar.archiveFile
-    changelog = changelogText
-    type = STABLE
-    displayName = "Regnum Agriculture ${mod_version} - ${minecraft_version}"
-    version = mod_version
-
-    modLoaders.add("fabric")
-
-    curseforge {
-        projectId = curseforge_project_id
-
-        accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
-
-        minecraftVersions.addAll(minecraft_supported_versions.split(","))
-        javaVersions.add(JavaVersion.VERSION_21)
-
-        clientRequired = true
-        serverRequired = true
-
-        requires("fabric-api")
-        optional("jei")
-        optional("roughly-enough-items")
-        optional("emi")
-    }
-
-    modrinth {
-        accessToken = providers.environmentVariable("MODRINTH_TOKEN")
-        projectId = modrinth_project_id
-
-        minecraftVersions.addAll(minecraft_supported_versions.split(","))
-
-        requires("fabric-api")
-        optional("jei")
-        optional("rei")
-        optional("emi")
-    }
-}
-
 processResources {
     var replaceProperties = [
             minecraft_version    : minecraft_version,
@@ -179,6 +164,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 java {
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
     withSourcesJar()
 
     sourceCompatibility = JavaVersion.VERSION_21
@@ -186,6 +172,8 @@ java {
 }
 
 jar {
+    from("THIRD_PARTY_NOTICES.md")
+    from("licenses") { into "licenses" }
     from("LICENSE") {
         rename { "${it}_${project.base.archivesName.get()}"}
     }
@@ -201,17 +189,21 @@ publishing {
         }
     }
 
-    repositories {
-        maven {
-            name "greenhouse"
-            url "https://maven.greenhouse.lgbt/releases"
-            credentials {
-                username System.getenv('MAVEN_USERNAME')
-                password System.getenv('MAVEN_PASSWORD')
-            }
-            authentication {
-                create("basic", BasicAuthentication)
-            }
-        }
+}
+
+test { useJUnitPlatform() }
+
+// Never reuse a developer or production world for automated checks.
+tasks.register('prepareGameTestDirectory') {
+    doLast {
+        def propertiesFile = layout.buildDirectory.file('gametest/server.properties').get().asFile
+        propertiesFile.parentFile.mkdirs()
+        if (!propertiesFile.exists()) propertiesFile.text = 'spawn-protection=0\n'
     }
+}
+tasks.named('runGameTest') { dependsOn 'prepareGameTestDirectory' }
+
+tasks.named('sourcesJar') {
+    from('LICENSE', 'THIRD_PARTY_NOTICES.md')
+    from('licenses') { into 'licenses' }
 }

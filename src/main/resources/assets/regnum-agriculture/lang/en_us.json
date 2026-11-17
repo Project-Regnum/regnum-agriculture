@@ -1,0 +1,12 @@
+{
+  "command.regnum_agriculture.status": "Regnum Agriculture %s — /agri check, /agri season",
+  "command.regnum_agriculture.connected": "Regnum World growth rules connected (region, altitude and underground restrictions).",
+  "command.regnum_agriculture.unavailable": "Regnum World is installed, but the Agriculture bridge failed. Check the server log; World may still enforce its own rules.",
+  "command.regnum_agriculture.standalone": "Regnum World is absent. Standard Farmer’s Delight crop growth applies.",
+  "command.regnum_agriculture.season_unavailable": "Season data unavailable: the supported Regnum World API exposes no calendar. No fallback season is calculated.",
+  "command.regnum_agriculture.player_only": "This command requires a player.",
+  "command.regnum_agriculture.look_at_crop": "Look at a crop within five blocks.",
+  "command.regnum_agriculture.crop": "%s — World growth factor: %s×; growth: %s. Vanilla light, soil and maturity checks still apply.",
+  "command.regnum_agriculture.blocked": "blocked",
+  "command.regnum_agriculture.allowed": "allowed"
+}

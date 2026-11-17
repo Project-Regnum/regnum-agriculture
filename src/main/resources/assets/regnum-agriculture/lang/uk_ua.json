@@ -1,0 +1,12 @@
+{
+  "command.regnum_agriculture.status": "Regnum Agriculture %s — /agri check, /agri season",
+  "command.regnum_agriculture.connected": "Правила росту Regnum World підключено (регіон, висота й підземні обмеження).",
+  "command.regnum_agriculture.unavailable": "Regnum World установлено, але інтеграція Agriculture недоступна. Перевірте журнал сервера; World може застосовувати власні правила.",
+  "command.regnum_agriculture.standalone": "Regnum World відсутній. Діють стандартні правила росту Farmer’s Delight.",
+  "command.regnum_agriculture.season_unavailable": "Дані про сезон недоступні: підтримуваний API Regnum World не надає календаря. Власний сезон не обчислюється.",
+  "command.regnum_agriculture.player_only": "Ця команда доступна лише гравцеві.",
+  "command.regnum_agriculture.look_at_crop": "Подивіться на культуру в межах п’яти блоків.",
+  "command.regnum_agriculture.crop": "%s — коефіцієнт росту World: %s×; ріст: %s. Звичайні перевірки світла, ґрунту й зрілості діють.",
+  "command.regnum_agriculture.blocked": "заблоковано",
+  "command.regnum_agriculture.allowed": "дозволено"
+}

@@ -12,8 +12,8 @@ public class ModMenuCompat implements ModMenuApi {
 
     @Override
     public ConfigScreenFactory<?> getModConfigScreenFactory() {
-        return parent -> new FabricConfigListScreen(FarmersDelight.MODID, ModItems.STOVE.get().getDefaultInstance(),
-                Component.translatable(FarmersDelight.MODID), null,
+        return parent -> new FabricConfigListScreen(com.projectregnum.agriculture.RegnumAgriculture.MOD_ID, ModItems.STOVE.get().getDefaultInstance(),
+                Component.literal("Regnum Agriculture"), null,
                 parent, Configuration.CLIENT_CONFIG, Configuration.COMMON_CONFIG);
     }
 

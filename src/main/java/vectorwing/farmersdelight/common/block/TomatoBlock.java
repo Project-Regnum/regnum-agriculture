@@ -92,7 +92,7 @@ public class TomatoBlock extends CropBlock
 	@Override
 	public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         if (!level.hasChunksAt(pos.offset(-1, -1 , -1), pos.offset(1, 1, 1))) return;
-        if (com.projectregnum.agriculture.sync.RegnumCropSync.shouldCancelGrowth(level, pos, state, random)) return;
+        if (com.projectregnum.agriculture.sync.RegnumCropSync.handleRandomTick(level, pos, state, random)) return;
 
 		if (state.is(ModBlocks.TOMATO_CROP.get()) && state.getValue(ROPELOGGED)) {
 			level.setBlockAndUpdate(pos, ModBlocks.TOMATO_CROP_ON_ROPE.get().defaultBlockState().setValue(VINE_AGE, this.getAge(state)));
@@ -197,6 +197,8 @@ public class TomatoBlock extends CropBlock
 
 	@Override
 	public void performBonemeal(ServerLevel level, RandomSource random, BlockPos pos, BlockState state) {
+        if (com.projectregnum.agriculture.sync.RegnumCropSync.isUndergroundBlocked(level, pos)
+                || com.projectregnum.agriculture.sync.RegnumCropSync.getMultiplier(level, pos, state) <= 0) return;
 
 		if (state.is(ModBlocks.TOMATO_CROP.get()) && state.getValue(ROPELOGGED)) {
 			level.setBlockAndUpdate(pos, ModBlocks.TOMATO_CROP_ON_ROPE.get().defaultBlockState().setValue(VINE_AGE, this.getAge(state)));
