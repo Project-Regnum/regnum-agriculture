@@ -27,6 +27,25 @@ public class AgricultureGameTests implements FabricGameTest {
         helper.assertTrue(commands.getChild("agriculture").getChild("grow") == null, "No free growth command");
         helper.assertTrue(commands.getChild("season") == null, "No conflicting season alias");
         boolean world = FabricLoader.getInstance().isModLoaded("regnum-world");
+        if (Boolean.getBoolean("regnum.agriculture.expectWorldFailure")) {
+            helper.assertTrue(world && RegnumCropSync.hasIntegrationFailure(), "Incompatible installed World must be exposed");
+            BlockPos blockedPos = helper.absolutePos(new BlockPos(1, 2, 1));
+            level.setBlockAndUpdate(blockedPos.below(), Blocks.FARMLAND.defaultBlockState());
+            for (var crop : new net.minecraft.world.level.block.Block[]{ModBlocks.CABBAGE_CROP.get(), ModBlocks.ONION_CROP.get(),
+                    ModBlocks.TOMATO_CROP.get(), ModBlocks.BUDDING_TOMATO_CROP.get(), ModBlocks.RICE_CROP.get(),
+                    ModBlocks.RICE_CROP_PANICLES.get(), ModBlocks.BROWN_MUSHROOM_COLONY.get()}) {
+                var initial = crop.defaultBlockState();
+                level.setBlockAndUpdate(blockedPos, initial);
+                var random = RandomSource.create(42);
+                initial.randomTick(level, blockedPos, random);
+                helper.assertTrue(initial.equals(level.getBlockState(blockedPos)), "Failed integration must block crop ticks");
+                ((net.minecraft.world.level.block.BonemealableBlock) crop).performBonemeal(level, random, blockedPos, initial);
+                helper.assertTrue(initial.equals(level.getBlockState(blockedPos)), "Failed integration must block bone meal");
+                helper.assertTrue(RegnumCropSync.shouldCancelGrowth(level, blockedPos, initial, random), "Failed integration must block rich soil");
+            }
+            helper.succeed();
+            return;
+        }
         helper.assertTrue(RegnumCropSync.isRegnumWorldLoaded() == world, "Optional World bridge must initialize");
         Object config = null;
         java.lang.reflect.Field underground = null, mountain = null;
@@ -53,6 +72,26 @@ public class AgricultureGameTests implements FabricGameTest {
                 helper.assertTrue(crop.getAge(level.getBlockState(pos)) > 0, "Imported crop must grow: " + BuiltInRegistries.BLOCK.getKey(block));
                 helper.assertTrue(!RegnumCropSync.isReplaying(), "Replay scope must close");
             }
+            if (!world) {
+                for (var crop : new net.minecraft.world.level.block.Block[]{ModBlocks.BUDDING_TOMATO_CROP.get(),
+                        ModBlocks.TOMATO_CROP_ON_ROPE.get(), ModBlocks.RICE_CROP.get(), ModBlocks.RICE_CROP_PANICLES.get(),
+                        ModBlocks.BROWN_MUSHROOM_COLONY.get(), ModBlocks.RED_MUSHROOM_COLONY.get()}) {
+                    level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
+                    level.setBlockAndUpdate(pos.below(2), Blocks.FARMLAND.defaultBlockState());
+                    var soil = crop == ModBlocks.RICE_CROP_PANICLES.get() ? ModBlocks.RICE_CROP.get().defaultBlockState()
+                            : crop == ModBlocks.TOMATO_CROP_ON_ROPE.get() ? ModBlocks.TOMATO_CROP.get().defaultBlockState()
+                            : crop == ModBlocks.BROWN_MUSHROOM_COLONY.get() || crop == ModBlocks.RED_MUSHROOM_COLONY.get()
+                            ? ModBlocks.RICH_SOIL.get().defaultBlockState() : Blocks.FARMLAND.defaultBlockState();
+                    level.setBlockAndUpdate(pos.below(), soil);
+                    var initial = crop.defaultBlockState();
+                    level.setBlockAndUpdate(pos, initial);
+                    var random = RandomSource.create(57);
+                    for (int i = 0; i < 2000 && level.getBlockState(pos).equals(initial); i++)
+                        initial.randomTick(level, pos, random);
+                    helper.assertTrue(level.getBlockState(pos).is(crop) && !level.getBlockState(pos).equals(initial),
+                            "Standalone crop must advance: " + BuiltInRegistries.BLOCK.getKey(crop));
+                }
+            }
             if (world) {
                 RegnumCropSync.init();
                 var api = Class.forName("zooller.regnumworld.api.RegnumWorldApi");
@@ -69,15 +108,21 @@ public class AgricultureGameTests implements FabricGameTest {
                 biomes.put(biomeId, policy);
                 try {
                     for (var crop : new net.minecraft.world.level.block.Block[]{ModBlocks.CABBAGE_CROP.get(), ModBlocks.ONION_CROP.get(),
-                            ModBlocks.TOMATO_CROP.get(), ModBlocks.BUDDING_TOMATO_CROP.get(), ModBlocks.RICE_CROP.get(),
-                            ModBlocks.RICE_CROP_PANICLES.get(), ModBlocks.BROWN_MUSHROOM_COLONY.get()}) {
+                            ModBlocks.TOMATO_CROP.get(), ModBlocks.TOMATO_CROP_ON_ROPE.get(), ModBlocks.BUDDING_TOMATO_CROP.get(), ModBlocks.RICE_CROP.get(),
+                            ModBlocks.RICE_CROP_PANICLES.get(), ModBlocks.BROWN_MUSHROOM_COLONY.get(), ModBlocks.RED_MUSHROOM_COLONY.get()}) {
                         for (int seed = 0; seed < 32; seed++) {
                             var initial = crop.defaultBlockState();
                             var soil = crop == ModBlocks.RICE_CROP_PANICLES.get() ? ModBlocks.RICE_CROP.get().defaultBlockState()
-                                    : crop == ModBlocks.BROWN_MUSHROOM_COLONY.get() ? Blocks.MYCELIUM.defaultBlockState()
+                                    : crop == ModBlocks.BROWN_MUSHROOM_COLONY.get() || crop == ModBlocks.RED_MUSHROOM_COLONY.get()
+                                    ? ModBlocks.RICH_SOIL.get().defaultBlockState()
                                     : Blocks.FARMLAND.defaultBlockState();
                             level.setBlockAndUpdate(pos.below(2), Blocks.DIRT.defaultBlockState());
                             level.setBlockAndUpdate(pos.below(), soil);
+                            // Rope/climbing stages can change neighboring blocks; reset the full fixture.
+                            for (int height = 1; height <= 4; height++)
+                                level.setBlockAndUpdate(pos.above(height), Blocks.AIR.defaultBlockState());
+                            // Removing a hanging tomato intentionally leaves its rope behind.
+                            level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
                             level.setBlockAndUpdate(pos, initial);
                             var firstRandom = RandomSource.create(seed);
                             rateField.setDouble(policy, 2);
@@ -85,6 +130,11 @@ public class AgricultureGameTests implements FabricGameTest {
                             var doubled = level.getBlockState(pos);
                             long afterDouble = firstRandom.nextLong();
                             rateField.setDouble(policy, 1);
+                            // Rope/climbing stages can change neighboring blocks; reset the full fixture.
+                            for (int height = 1; height <= 4; height++)
+                                level.setBlockAndUpdate(pos.above(height), Blocks.AIR.defaultBlockState());
+                            // Removing a hanging tomato intentionally leaves its rope behind.
+                            level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
                             level.setBlockAndUpdate(pos, initial);
                             var secondRandom = RandomSource.create(seed);
                             initial.randomTick(level, pos, secondRandom);
@@ -92,6 +142,11 @@ public class AgricultureGameTests implements FabricGameTest {
                             helper.assertTrue(doubled.equals(level.getBlockState(pos)) && afterDouble == secondRandom.nextLong(),
                                     "2x must equal two original ticks without stacking: " + BuiltInRegistries.BLOCK.getKey(crop) + " seed=" + seed + " doubled=" + doubled + " single=" + level.getBlockState(pos) + " rate=" + RegnumCropSync.getMultiplier(level, pos, initial));
                             rateField.setDouble(policy, 0);
+                            // Rope/climbing stages can change neighboring blocks; reset the full fixture.
+                            for (int height = 1; height <= 4; height++)
+                                level.setBlockAndUpdate(pos.above(height), Blocks.AIR.defaultBlockState());
+                            // Removing a hanging tomato intentionally leaves its rope behind.
+                            level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
                             level.setBlockAndUpdate(pos, initial);
                             initial.randomTick(level, pos, secondRandom);
                             helper.assertTrue(initial.equals(level.getBlockState(pos)), "Zero factor must stop every imported crop");
@@ -100,6 +155,24 @@ public class AgricultureGameTests implements FabricGameTest {
                             helper.assertTrue(initial.equals(level.getBlockState(pos)), "Zero factor must prevent direct imported bone meal");
                         }
                     }
+                    rateField.setDouble(policy, 0.5);
+                    var unusedRandom = level.random;
+                    unusedRandom.setSeed(57);
+                    long expectedRandom = RandomSource.create(57).nextLong();
+                    helper.assertTrue(!vectorwing.farmersdelight.common.block.RichSoilBlock.boostPlant(
+                            Blocks.AIR.defaultBlockState(), pos, level), "Air cannot receive rich soil boosts");
+                    helper.assertTrue(unusedRandom.nextLong() == expectedRandom, "Ineligible rich soil targets must not consume policy RNG");
+                    // A permitted source mushroom must not convert into a forbidden colony.
+                    rateField.setDouble(policy, 1);
+                    @SuppressWarnings("unchecked")
+                    var overrides = (java.util.Map<String, Double>) growthType.getField("crops").get(policy);
+                    overrides.put("farmersdelight:brown_mushroom_colony", 0.0);
+                    level.setBlockAndUpdate(pos.below(), ModBlocks.RICH_SOIL.get().defaultBlockState());
+                    level.setBlockAndUpdate(pos, Blocks.BROWN_MUSHROOM.defaultBlockState());
+                    var soilBlock = (vectorwing.farmersdelight.common.block.RichSoilBlock) ModBlocks.RICH_SOIL.get();
+                    helper.assertTrue(!soilBlock.convertMushroomToColony(level.getBlockState(pos), pos, level),
+                            "Rich soil conversion must respect destination crop restrictions");
+                    helper.assertTrue(level.getBlockState(pos).is(Blocks.BROWN_MUSHROOM), "Forbidden colony must not be created");
                 } finally {
                     if (previous == null) biomes.remove(biomeId); else biomes.put(biomeId, previous);
                 }

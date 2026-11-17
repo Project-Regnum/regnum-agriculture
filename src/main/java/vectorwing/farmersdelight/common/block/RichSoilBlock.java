@@ -31,8 +31,7 @@ public class RichSoilBlock extends Block
 		BlockPos abovePos = pos.above();
 		BlockState aboveState = level.getBlockState(abovePos);
 
-		if (!com.projectregnum.agriculture.sync.RegnumCropSync.shouldCancelGrowth(level, abovePos, aboveState, random)
-                && convertMushroomToColony(aboveState, abovePos, level)) {
+		if (convertMushroomToColony(aboveState, abovePos, level)) {
 			return;
 		}
 
@@ -58,12 +57,12 @@ public class RichSoilBlock extends Block
 	}
 
 	public static boolean boostPlant(BlockState plantState, BlockPos plantPos, ServerLevel level) {
-        if (com.projectregnum.agriculture.sync.RegnumCropSync.shouldCancelGrowth(level, plantPos, plantState, level.random)) return false;
 		if (plantState.is(ModTags.Blocks.UNAFFECTED_BY_RICH_SOIL)) {
 			return false;
 		}
 		if (plantState.getBlock() instanceof BonemealableBlock growable) {
 			if (growable.isValidBonemealTarget(level, plantPos, plantState)) {
+                if (com.projectregnum.agriculture.sync.RegnumCropSync.shouldCancelGrowth(level, plantPos, plantState, level.random)) return false;
 				growable.performBonemeal(level, level.random, plantPos, plantState);
 				for (ServerPlayer player : level.getChunkSource().chunkMap.getPlayers(level.getChunkAt(plantPos).getPos(), false)) {
 					ServerPlayNetworking.send(player, new RichSoilBoostParticlesPayload(plantPos));
@@ -75,6 +74,12 @@ public class RichSoilBlock extends Block
 	}
 
 	public boolean convertMushroomToColony(BlockState targetState, BlockPos targetPos, ServerLevel level) {
+        BlockState colony = targetState.is(Blocks.BROWN_MUSHROOM) ? ModBlocks.BROWN_MUSHROOM_COLONY.get().defaultBlockState()
+                : targetState.is(Blocks.RED_MUSHROOM) ? ModBlocks.RED_MUSHROOM_COLONY.get().defaultBlockState() : null;
+        if (colony == null) return false;
+        if (com.projectregnum.agriculture.sync.RegnumCropSync.isUndergroundBlocked(level, targetPos)
+                || com.projectregnum.agriculture.sync.RegnumCropSync.getMultiplier(level, targetPos, colony) <= 0
+                || com.projectregnum.agriculture.sync.RegnumCropSync.shouldCancelGrowth(level, targetPos, targetState, level.random)) return false;
 		if (targetState.is(Blocks.BROWN_MUSHROOM)) {
 			level.setBlockAndUpdate(targetPos, ModBlocks.BROWN_MUSHROOM_COLONY.get().defaultBlockState());
 			return true;

@@ -17,6 +17,7 @@ public final class RegnumCropSync {
     private static Method underground;
     private static Method multiplier;
     private static boolean active;
+    private static boolean worldPresent;
     private static boolean initialized;
     private static boolean failureReported;
     private static final ThreadLocal<Boolean> REPLAY = ThreadLocal.withInitial(() -> false);
@@ -27,14 +28,25 @@ public final class RegnumCropSync {
     public static void init() {
         if (initialized) return;
         initialized = true;
-        if (!FabricLoader.getInstance().isModLoaded("regnum-world")) {
+        worldPresent = FabricLoader.getInstance().isModLoaded("regnum-world");
+        if (!worldPresent) {
             RegnumAgriculture.LOGGER.info("Regnum World absent: retaining standalone Farmer's Delight growth.");
             return;
         }
         try {
+            // Validate the legacy replay hook before registering a controller. @Pseudo alone
+            // only protects absence, not an installed World with a changed helper.
+            Class.forName("zooller.regnumworld.growth.GrowthHelper").getMethod("handleRandomTick",
+                    net.minecraft.world.level.block.Block.class, BlockState.class, ServerLevel.class,
+                    BlockPos.class, RandomSource.class, org.spongepowered.asm.mixin.injection.callback.CallbackInfo.class);
+            if (!WorldMixinPlugin.isReplayHookCompatible())
+                throw new NoSuchMethodException("World replay mixin was not compatible with GrowthHelper");
             Class<?> api = Class.forName("zooller.regnumworld.api.RegnumWorldApi");
             Class<?> controller = Class.forName("zooller.regnumworld.api.ExternalGrowthController");
             Class<? extends Enum> result = (Class<? extends Enum>) Class.forName("zooller.regnumworld.api.GrowthResult");
+            if (controller.getMethod("onRandomTick", BlockState.class, ServerLevel.class,
+                    BlockPos.class, RandomSource.class, double.class).getReturnType() != result)
+                throw new NoSuchMethodException("Incompatible ExternalGrowthController result type");
             Object pass = Enum.valueOf(result, "PASS");
             Object handled = Enum.valueOf(result, "HANDLED");
             underground = api.getMethod("isUndergroundGrowthBlocked", Level.class, BlockPos.class);
@@ -65,11 +77,12 @@ public final class RegnumCropSync {
         active = false;
         if (!failureReported) {
             failureReported = true;
-            RegnumAgriculture.LOGGER.error("Regnum World growth integration unavailable. Agriculture's bridge is disabled; check World API compatibility. World may still apply its own rules.", error);
+            RegnumAgriculture.LOGGER.error("Regnum World growth integration unavailable. Overworld crop growth and bone meal are blocked to preserve server restrictions. Install a compatible World version or remove World.", error);
         }
     }
 
     public static boolean isRegnumWorldLoaded() { return active; }
+    public static boolean hasIntegrationFailure() { return worldPresent && !active; }
     public static boolean isReplaying() { return REPLAY.get(); }
 
     public static boolean isImportedCrop(BlockState state) {
@@ -77,30 +90,33 @@ public final class RegnumCropSync {
     }
 
     public static boolean isUndergroundBlocked(Level level, BlockPos pos) {
-        if (!active || level == null || level.dimension() != Level.OVERWORLD) return false;
+        if (level == null || level.dimension() != Level.OVERWORLD) return false;
+        if (!active) return hasIntegrationFailure();
         try {
             return (Boolean) underground.invoke(null, level, pos);
         } catch (ReflectiveOperationException | ClassCastException e) {
             reportFailure(e);
-            return false;
+            return true;
         }
     }
 
     public static double getMultiplier(ServerLevel level, BlockPos pos, BlockState state) {
-        if (!active || level == null || level.dimension() != Level.OVERWORLD) return 1;
+        if (level == null || level.dimension() != Level.OVERWORLD) return 1;
+        if (!active) return hasIntegrationFailure() ? 0 : 1;
         try {
             double value = ((Number) multiplier.invoke(null, level, pos, state)).doubleValue();
             if (!Double.isFinite(value) || value < 0) throw new IllegalArgumentException("Invalid World multiplier: " + value);
             return value;
         } catch (ReflectiveOperationException | ClassCastException | IllegalArgumentException e) {
             reportFailure(e);
-            return 1;
+            return 0;
         }
     }
 
     /** For source overrides that never enter World's vanilla CropBlock mixin. */
     public static boolean handleRandomTick(ServerLevel level, BlockPos pos, BlockState state, RandomSource random) {
-        if (!active || isReplaying() || level.dimension() != Level.OVERWORLD) return false;
+        if (isReplaying() || level.dimension() != Level.OVERWORLD) return false;
+        if (!active) return hasIntegrationFailure();
         double rate = isUndergroundBlocked(level, pos) ? 0 : getMultiplier(level, pos, state);
         replay(state, level, pos, random, rate);
         return true;
