@@ -79,7 +79,7 @@ public class BuddingBushBlock extends BushBlock
 	@Override
 	public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         if (!level.hasChunksAt(pos.offset(-1, -1 , -1), pos.offset(1, 1, 1))) return;
-        if (com.projectregnum.agriculture.sync.RegnumCropSync.shouldCancelGrowth(level, pos, state, random)) return;
+        if (com.projectregnum.agriculture.sync.RegnumCropSync.handleRandomTick(level, pos, state, random)) return;
 		if (level.getRawBrightness(pos, 0) >= 9) {
 			int age = getAge(state);
 			if (age <= getMaxAge()) {

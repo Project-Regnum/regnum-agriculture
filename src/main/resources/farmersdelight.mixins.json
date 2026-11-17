@@ -30,7 +30,8 @@
     "refabricated.ReloadableServerRegistriesMixin",
     "refabricated.ServerRecipeBookMixin",
     "refabricated.StemBlockMixin",
-    "refabricated.SugarCaneBlockMixin"
+    "refabricated.SugarCaneBlockMixin",
+    "regnum.WorldGrowthReplayMixin"
   ],
   "client": [
     "CanvasSignEditScreenMixin",
@@ -42,6 +43,5 @@
   ],
   "injectors": {
     "defaultRequire": 1
-  },
-  "minVersion": "0.8"
+  }
 }

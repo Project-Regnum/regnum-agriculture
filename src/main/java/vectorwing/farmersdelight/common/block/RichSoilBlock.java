@@ -31,7 +31,8 @@ public class RichSoilBlock extends Block
 		BlockPos abovePos = pos.above();
 		BlockState aboveState = level.getBlockState(abovePos);
 
-		if (convertMushroomToColony(aboveState, abovePos, level)) {
+		if (!com.projectregnum.agriculture.sync.RegnumCropSync.shouldCancelGrowth(level, abovePos, aboveState, random)
+                && convertMushroomToColony(aboveState, abovePos, level)) {
 			return;
 		}
 
@@ -57,7 +58,7 @@ public class RichSoilBlock extends Block
 	}
 
 	public static boolean boostPlant(BlockState plantState, BlockPos plantPos, ServerLevel level) {
-        if (com.projectregnum.agriculture.sync.RegnumCropSync.isUndergroundBlocked(level, plantPos)) return false;
+        if (com.projectregnum.agriculture.sync.RegnumCropSync.shouldCancelGrowth(level, plantPos, plantState, level.random)) return false;
 		if (plantState.is(ModTags.Blocks.UNAFFECTED_BY_RICH_SOIL)) {
 			return false;
 		}

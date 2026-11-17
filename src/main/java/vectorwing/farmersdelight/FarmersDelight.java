@@ -78,10 +78,6 @@ public class FarmersDelight implements ModInitializer {
 		ItemAbilityIngredient.touch();
 
 		CompostableHelper.apply();
-        net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
-            com.projectregnum.agriculture.command.AgricultureCommand.register(dispatcher);
-        });
-        com.projectregnum.agriculture.sync.RegnumCropSync.init();
 
 	}
 }

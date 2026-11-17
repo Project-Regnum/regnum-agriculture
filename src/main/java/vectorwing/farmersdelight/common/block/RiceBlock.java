@@ -61,7 +61,7 @@ public class RiceBlock extends BushBlock implements BonemealableBlock, LiquidBlo
 	public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
 		super.tick(state, level, pos, random);
         if (!level.hasChunksAt(pos.offset(-1, -1, -1), pos.offset(1, 1, 1))) return;
-        if (com.projectregnum.agriculture.sync.RegnumCropSync.shouldCancelGrowth(level, pos, state, random)) return;
+        if (com.projectregnum.agriculture.sync.RegnumCropSync.handleRandomTick(level, pos, state, random)) return;
 		if (level.getRawBrightness(pos.above(), 0) >= 6) {
 			int age = this.getAge(state);
 			if (age <= this.getMaxAge()) {
@@ -166,6 +166,8 @@ public class RiceBlock extends BushBlock implements BonemealableBlock, LiquidBlo
 
 	@Override
 	public void performBonemeal(ServerLevel level, RandomSource random, BlockPos pos, BlockState state) {
+        if (com.projectregnum.agriculture.sync.RegnumCropSync.isUndergroundBlocked(level, pos)
+                || com.projectregnum.agriculture.sync.RegnumCropSync.getMultiplier(level, pos, state) <= 0) return;
 		int ageGrowth = Math.min(this.getAge(state) + this.getBonemealAgeIncrease(level), 7);
 		if (ageGrowth <= this.getMaxAge()) {
 			level.setBlockAndUpdate(pos, state.setValue(AGE, ageGrowth));
