@@ -1,6 +1,7 @@
 {
   "minVersion": "0.8",
   "required": true,
+  "plugin": "com.projectregnum.agriculture.sync.WorldMixinPlugin",
   "package": "vectorwing.farmersdelight.common.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [

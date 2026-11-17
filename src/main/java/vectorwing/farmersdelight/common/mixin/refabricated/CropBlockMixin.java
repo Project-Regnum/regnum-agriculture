@@ -14,6 +14,14 @@ import vectorwing.farmersdelight.common.utility.SoilUtils;
 
 @Mixin(CropBlock.class)
 public class CropBlockMixin {
+    @org.spongepowered.asm.mixin.injection.Inject(method = "randomTick", at = @At("HEAD"), cancellable = true)
+    private void agriculture$failedIntegration(BlockState state, net.minecraft.server.level.ServerLevel level,
+            BlockPos pos, net.minecraft.util.RandomSource random,
+            org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
+        if (com.projectregnum.agriculture.sync.RegnumCropSync.hasIntegrationFailure()
+                && level.dimension() == net.minecraft.world.level.Level.OVERWORLD) ci.cancel();
+    }
+
     @org.spongepowered.asm.mixin.injection.Inject(method = "growCrops", at = @At("HEAD"), cancellable = true)
     private void agriculture$restrictDirectGrowth(net.minecraft.world.level.Level level, BlockPos pos, BlockState state,
             org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {

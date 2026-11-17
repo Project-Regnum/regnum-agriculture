@@ -41,10 +41,18 @@ loom {
         "regnum_agriculture_tests" { sourceSet sourceSets.testmod }
     }
     runs {
+        clientValidation {
+            client()
+            name "Agriculture isolated client validation"
+            runDir "build/client-validation"
+        }
         gameTest {
             server()
             name "Agriculture isolated GameTest"
             vmArg "-Dfabric-api.gametest"
+            if (providers.gradleProperty("expectWorldFailure").isPresent()) {
+                vmArg "-Dregnum.agriculture.expectWorldFailure=true"
+            }
             vmArg "-Dfabric-api.gametest.report-file=reports/gametest-results.xml"
             runDir "build/gametest"
             source sourceSets.testmod

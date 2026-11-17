@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Pseudo
 @Mixin(targets = "zooller.regnumworld.growth.GrowthHelper", remap = false)
 public class WorldGrowthReplayMixin {
-    @Inject(method = "handleRandomTick", at = @At("HEAD"), cancellable = true, remap = false)
+    @Inject(method = "handleRandomTick", at = @At("HEAD"), cancellable = true, remap = false, require = 0)
     private static void agriculture$originalTick(Block block, BlockState state, ServerLevel level,
             BlockPos pos, RandomSource random, CallbackInfo worldCallback, CallbackInfo ci) {
         if (RegnumCropSync.isReplaying()) ci.cancel();
