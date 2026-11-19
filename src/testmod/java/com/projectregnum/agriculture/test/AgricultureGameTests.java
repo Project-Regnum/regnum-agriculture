@@ -4,11 +4,19 @@ import com.projectregnum.agriculture.sync.RegnumCropSync;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.block.LiquidBlock;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
+import vectorwing.farmersdelight.common.block.RiceBlock;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
 import vectorwing.farmersdelight.common.registry.ModBlocks;
@@ -62,6 +70,7 @@ public class AgricultureGameTests implements FabricGameTest {
         }
         try {
             BlockPos pos = helper.absolutePos(new BlockPos(1, 2, 1));
+            checkRicePlacementAndGrowth(helper, pos);
             level.setBlockAndUpdate(pos.below(), Blocks.FARMLAND.defaultBlockState());
             for (var block : new net.minecraft.world.level.block.Block[]{ModBlocks.CABBAGE_CROP.get(), ModBlocks.ONION_CROP.get(), ModBlocks.TOMATO_CROP.get()}) {
                 var crop = (CropBlock) block;
@@ -194,4 +203,37 @@ public class AgricultureGameTests implements FabricGameTest {
         }
         helper.succeed();
     }
+
+    private static void checkRicePlacementAndGrowth(GameTestHelper helper, BlockPos pos) {
+        var level = helper.getLevel();
+        var rice = (RiceBlock) ModBlocks.RICE_CROP.get();
+        var hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false);
+        var context = new BlockPlaceContext(level, null, InteractionHand.MAIN_HAND,
+                new ItemStack(ModItems.RICE.get()), hit);
+
+        level.setBlockAndUpdate(pos.below(), Blocks.DIRT.defaultBlockState());
+        level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
+        helper.assertTrue(rice.getStateForPlacement(context) == null, "Dry rice planting must fail");
+
+        level.setBlockAndUpdate(pos, Blocks.WATER.defaultBlockState().setValue(LiquidBlock.LEVEL, 1));
+        helper.assertTrue(rice.getStateForPlacement(context) == null, "Flowing water cannot support rice planting");
+
+        level.setBlockAndUpdate(pos, Blocks.WATER.defaultBlockState());
+        level.setBlockAndUpdate(pos.below(), Blocks.STONE.defaultBlockState());
+        helper.assertTrue(!rice.defaultBlockState().canSurvive(level, pos), "Stone cannot support rice");
+
+        level.setBlockAndUpdate(pos.below(), Blocks.DIRT.defaultBlockState());
+        var planted = rice.getStateForPlacement(context);
+        helper.assertTrue(planted != null && planted.canSurvive(level, pos), "Source water over dirt supports rice");
+        level.setBlockAndUpdate(pos, planted);
+        var random = RandomSource.create(57);
+        for (int attempt = 0; attempt < 2000 && level.getBlockState(pos).equals(planted); attempt++) {
+            planted.randomTick(level, pos, random);
+        }
+        var grown = level.getBlockState(pos);
+        helper.assertTrue(grown.is(rice) && grown.getValue(RiceBlock.AGE) > 0 && grown.getFluidState().isSource(),
+                "Rice advances and retains water on valid substrate");
+        level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
+    }
+
 }

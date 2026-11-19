@@ -67,36 +67,45 @@ repositories {
         dirs 'mods'
     }
 
-    maven { url "https://maven.parchmentmc.org" }
-
+    maven {
+        url = "https://maven.parchmentmc.org"
+        content { includeGroup("org.parchmentmc.data") }
+    }
     maven {
         url = "https://www.cursemaven.com"
-        allowInsecureProtocol = true
+        content { includeGroup("curse.maven") }
     }
-
     maven {
-        url "https://maven.firstdarkdev.xyz/snapshots"
-    }
-
-    maven {
-        name = 'Ladysnake Mods'
-        url = 'https://maven.ladysnake.org/releases'
-    }
-
-    maven {
-        url = "https://api.modrinth.com/maven"
-    }
-
-    maven {
-        name = "BlameJared"
         url = "https://maven.blamejared.com/"
+        content {
+            includeGroup("com.blamejared.crafttweaker")
+            includeGroup("org.openzen.zencode")
+            includeGroup("com.faux.fauxcustomentitydata")
+            includeGroup("mezz.jei")
+        }
     }
-    maven { url "https://maven.ryanliptak.com/" } // AppleSkin
-    maven { url = "https://maven.parchmentmc.org" } // Parchment
-    maven { url = "https://maven.fabricmc.net/" } // FAPI, Loader
-    maven { url = "https://maven.architectury.dev/" } // REI and deps
-    maven { url = "https://maven.shedaniel.me/" } // REI and deps
-    maven { url = "https://maven.terraformersmc.com/" } // Mod Menu, EMI
+    maven {
+        url = "https://maven.fabricmc.net/"
+        content { includeGroupByRegex("net[.]fabricmc([.].*)?") }
+    }
+    maven {
+        url = "https://maven.architectury.dev/"
+        content {
+            includeGroup("dev.architectury")
+            includeGroupByRegex("me[.]shedaniel([.].*)?")
+        }
+    }
+    maven {
+        url = "https://maven.shedaniel.me/"
+        content { includeGroupByRegex("me[.]shedaniel([.].*)?") }
+    }
+    maven {
+        url = "https://maven.terraformersmc.com/"
+        content {
+            includeGroup("com.terraformersmc")
+            includeGroup("dev.emi")
+        }
+    }
     mavenCentral()
 }
 
