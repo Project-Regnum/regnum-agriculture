@@ -1,0 +1,47 @@
+{
+  "minVersion": "0.8",
+  "required": true,
+  "package": "vectorwing.farmersdelight.common.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "CampfireBaleMixin",
+    "CuttingBoardDispenserMixin",
+    "KeepRichSoilGiantTreeMixin",
+    "KeepRichSoilTreeMixin",
+    "KeepRichSoilUntrampledMixin",
+    "NourishmentAlwaysEatMixin",
+    "PlacePumpkinPieMixin",
+    "RopeFenceConnectionMixin",
+    "VillagersTargetRichSoilMixin",
+    "datafix.ItemStackComponentizationFixMixin",
+    "datafix.V1460Mixin",
+    "datafix.V3818_3Mixin",
+    "refabricated.BushBlockMixin",
+    "refabricated.CactusBlockMixin",
+    "refabricated.CropBlockMixin",
+    "refabricated.DoublePlantBlockMixin",
+    "refabricated.FenceGateBlockMixin",
+    "refabricated.ItemStackMixin",
+    "refabricated.LivingEntityMixin",
+    "refabricated.MushroomBlockMixin",
+    "refabricated.PlayerMixin",
+    "refabricated.RecipeBookSettingsMixin",
+    "refabricated.RecipeBookTypeMixin",
+    "refabricated.ReloadableServerRegistriesMixin",
+    "refabricated.ServerRecipeBookMixin",
+    "refabricated.StemBlockMixin",
+    "refabricated.SugarCaneBlockMixin"
+  ],
+  "client": [
+    "CanvasSignEditScreenMixin",
+    "HideBlockBreakProgressMixin",
+    "refabricated.ClientRecipeBookMixin",
+    "refabricated.GuiMixin",
+    "refabricated.HumanoidModelMixin",
+    "refabricated.RecipeBookCategoriesMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "minVersion": "0.8"
+}

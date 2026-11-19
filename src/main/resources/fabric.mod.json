@@ -1,41 +1,58 @@
 {
-	"schemaVersion": 1,
-	"id": "regnum-agriculture",
-	"version": "${version}",
-	"name": "Regnum Agriculture",
-	"description": "This is an example description! Tell everyone what your mod is about!",
-	"authors": [
-		"Me!"
-	],
-	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
-	},
-	"license": "CC0-1.0",
-	"icon": "assets/regnum-agriculture/icon.png",
-	"environment": "*",
-	"entrypoints": {
-		"main": [
-			"com.projectregnum.agriculture.RegnumAgriculture"
-		],
-		"client": [
-			"com.projectregnum.agriculture.client.RegnumAgricultureClient"
-		],
-		"fabric-datagen": [
-			"com.projectregnum.agriculture.client.RegnumAgricultureDataGenerator"
-		]
-	},
-	"mixins": [
-		"regnum-agriculture.mixins.json",
-		{
-			"config": "regnum-agriculture.client.mixins.json",
-			"environment": "client"
-		}
-	],
-	"depends": {
-		"fabricloader": ">=0.20.1",
-		"minecraft": "~1.21.1",
-		"java": ">=21",
-		"fabric-api": "*"
-	}
+  "schemaVersion": 1,
+  "id": "regnum-agriculture",
+  "version": "${mod_version}",
+  "name": "${mod_name}",
+  "description": "${mod_description}",
+  "authors": [
+    "${mod_authors}"
+  ],
+  "contributors": [
+    "${mod_credits}"
+  ],
+  "contact": {
+    "homepage": "${mod_homepage}",
+    "sources": "${mod_github}"
+  },
+  "license": "${mod_license}",
+  "icon": "assets/regnum-agriculture/icon.png",
+  "environment": "*",
+  "provides": [
+    "farmersdelight"
+  ],
+  "entrypoints": {
+    "main": [
+      "com.projectregnum.agriculture.RegnumAgriculture"
+    ],
+    "client": [
+      "com.projectregnum.agriculture.client.RegnumAgricultureClient"
+    ],
+    "fabric-datagen": [
+      "vectorwing.farmersdelight.data.DataGenerators"
+    ],
+    "jei_mod_plugin": [
+      "vectorwing.farmersdelight.integration.jei.JEIPlugin"
+    ],
+    "rei_client": [
+      "vectorwing.farmersdelight.integration.rei.ClientREIPlugin"
+    ],
+    "rei_server": [
+      "vectorwing.farmersdelight.integration.rei.ServerREIPlugin"
+    ],
+    "emi": [
+      "vectorwing.farmersdelight.integration.emi.EMIPlugin"
+    ],
+    "modmenu": [
+      "vectorwing.farmersdelight.integration.modmenu.ModMenuCompat"
+    ]
+  },
+  "mixins": [
+    "farmersdelight.mixins.json"
+  ],
+  "accessWidener": "farmersdelight.classtweaker",
+  "depends": {
+    "fabricloader": ">=0.19",
+    "fabric-api": "*",
+    "minecraft": ">=${minecraft_min_version} <=${minecraft_max_version}"
+  }
 }

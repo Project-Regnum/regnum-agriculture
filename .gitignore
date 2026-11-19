@@ -1,40 +1,51 @@
-# gradle
-
-.gradle/
-build/
-out/
-classes/
-
 # eclipse
-
+bin
 *.launch
-
-# idea
-
-.idea/
-*.iml
-*.ipr
-*.iws
-
-# vscode
-
-.settings/
-.vscode/
-bin/
+.settings
+.metadata
 .classpath
 .project
 
-# macos
+# idea
+out
+*.ipr
+*.iws
+*.iml
+.idea
 
-*.DS_Store
+# gradle
+build
+.gradle
 
-# fabric
+# other
+eclipse
+run
+logs
+docsOut
 
-run/
+# Files from Forge MDK
+forge*changelog.txt
+/mods/omega-config-base-1.2.3-1.18.1.jar
+/mods/
 
-# java
+# Farmer's Delight Refabricated
+.cache
 
-hs_err_*.log
-replay_*.log
-*.hprof
-*.jfr
+# MixinMCP auto-injected rules
+.cursor/rules/minecraft-mod-project.mdc
+.cursor/skills/mixin-writing/SKILL.md
+.cursor/skills/mixin-writing/references/at-reference.md
+.cursor/skills/mixin-writing/references/expressions-language.md
+.cursor/skills/mixinmcp-tools/SKILL.md
+.cursor/skills/mixinmcp-tools/references/toolchains.md
+.claude/skills/mixin-writing/SKILL.md
+.claude/skills/mixin-writing/references/at-reference.md
+.claude/skills/mixin-writing/references/expressions-language.md
+.claude/skills/mixinmcp-tools/SKILL.md
+.claude/skills/mixinmcp-tools/references/toolchains.md
+
+# AI agent / assistant config (local only, not on GitHub)
+.claude/
+.cursor/
+.junie/
+CLAUDE.md
